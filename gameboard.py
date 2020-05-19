@@ -1,4 +1,6 @@
 #!/usr/bin/python
+"""gameboard.py: Includes class declaration for a board space with proper attributes. Also has logic to load the
+gameboard based on the order of map pieces and structures."""
 
 import pickle
 
@@ -26,26 +28,32 @@ class BoardSpace:
             return self.terrain
 
 
+# Map piece 1
 one = [[BoardSpace('water'), BoardSpace('water'), BoardSpace('water'), BoardSpace('water'), BoardSpace('forest'), BoardSpace('forest')],
        [BoardSpace('swamp'), BoardSpace('swamp'), BoardSpace('water'), BoardSpace('desert'), BoardSpace('forest'), BoardSpace('forest')],
        [BoardSpace('swamp'), BoardSpace('swamp'), BoardSpace('desert'), BoardSpace('desert', 'bear'), BoardSpace('desert', 'bear'), BoardSpace('forest', 'bear')]]
 
+# Map piece 2
 two = [[BoardSpace('swamp', 'cougar'), BoardSpace('forest', 'cougar'), BoardSpace('forest', 'cougar'), BoardSpace('forest'), BoardSpace('forest'), BoardSpace('forest')],
        [BoardSpace('swamp'), BoardSpace('swamp'), BoardSpace('forest'), BoardSpace('desert'), BoardSpace('desert'), BoardSpace('desert')],
        [BoardSpace('swamp'), BoardSpace('mountain'), BoardSpace('mountain'), BoardSpace('mountain'), BoardSpace('mountain'), BoardSpace('desert')]]
 
+# Map piece 3
 three = [[BoardSpace('swamp'), BoardSpace('swamp'), BoardSpace('forest'), BoardSpace('forest'), BoardSpace('forest'), BoardSpace('water')],
          [BoardSpace('swamp', 'cougar'), BoardSpace('swamp', 'cougar'), BoardSpace('forest'), BoardSpace('mountain'), BoardSpace('water'), BoardSpace('water')],
          [BoardSpace('mountain', 'cougar'), BoardSpace('mountain'), BoardSpace('mountain'), BoardSpace('mountain'), BoardSpace('water'), BoardSpace('water')]]
 
+# Map piece 4
 four = [[BoardSpace('desert'), BoardSpace('desert'), BoardSpace('mountain'), BoardSpace('mountain'), BoardSpace('mountain'), BoardSpace('mountain')],
         [BoardSpace('desert'), BoardSpace('desert'), BoardSpace('mountain'), BoardSpace('water'), BoardSpace('water'), BoardSpace('water', 'cougar')],
         [BoardSpace('desert'), BoardSpace('desert'), BoardSpace('desert'), BoardSpace('forest'), BoardSpace('forest'), BoardSpace('forest', 'cougar')]]
 
+# Map piece 5
 five = [[BoardSpace('swamp'), BoardSpace('swamp'), BoardSpace('swamp'), BoardSpace('mountain'), BoardSpace('mountain'), BoardSpace('mountain')],
         [BoardSpace('swamp'), BoardSpace('desert'), BoardSpace('desert'), BoardSpace('water'), BoardSpace('mountain'), BoardSpace('mountain', 'bear')],
         [BoardSpace('desert'), BoardSpace('desert'), BoardSpace('water'), BoardSpace('water'), BoardSpace('water', 'bear'), BoardSpace('water', 'bear')]]
 
+# Map piece 6
 six = [[BoardSpace('desert', 'bear'), BoardSpace('desert'), BoardSpace('swamp'), BoardSpace('swamp'), BoardSpace('swamp'), BoardSpace('forest')],
        [BoardSpace('mountain', 'bear'), BoardSpace('mountain'), BoardSpace('swamp'), BoardSpace('swamp'), BoardSpace('forest'), BoardSpace('forest')],
        [BoardSpace('mountain'), BoardSpace('water'), BoardSpace('water'), BoardSpace('water'), BoardSpace('water'), BoardSpace('forest')]]
@@ -53,11 +61,13 @@ six = [[BoardSpace('desert', 'bear'), BoardSpace('desert'), BoardSpace('swamp'),
 pieces = [one, two, three, four, five, six]
 
 
+# for a map piece that goes upside-down
 def flip_piece(piece):
     return [row[::-1] for row in piece[::-1]]
 
 
 def load_board(board, debug=None, debug2=None):
+    # debug options are lists that can be passed in with the piece order and structure locations to skip the user input
     for i in range(6):
         if not debug:
             piece = input("Input piece #" + str(i + 1) + ': ')
@@ -70,20 +80,17 @@ def load_board(board, debug=None, debug2=None):
             p = flip_piece(pieces[num - 1])
         else:
             p = pieces[num - 1]
+
         startcol = 0
         if i > 2:
             startcol = 6
 
+        # Place spaces into the corresponding spaces in the board
         for ro, r in enumerate(range((i % 3) * 3, (i % 3) * 3 + 3)):
             for co, c in enumerate(range(startcol, startcol + 6)):
-                # print(i)
-                # print(r, c)
-                # print(ro, co)
                 board[r][c] = p[ro][co]
-                # print(board)
-        # print(p)
-        # print(board)
 
+    # Load structures into the spaces
     if debug2:
         loc = debug2[0]
         board[int(loc[0])][int(loc[1])].add_building('green', 'stone')
