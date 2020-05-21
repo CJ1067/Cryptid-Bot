@@ -1,14 +1,21 @@
 #!/usr/bin/python
+"""cluechecker.py: Contains methods for checking spaces against clues. Can do one at a time or multiple as implemented
+in runner.py"""
+__author__ = "Christopher Lehman"
+__email__ = "lehman40@purdue.edu"
 
 from gameboard import load_board, print_board, load_obj
 
+# Initialize empty board
 board = [[None] * 12 for _ in range(9)]
 load_board(board)
 print_board(board)
+# load from distances.pkl as created by dcounter.py
 distances = load_obj('distances')
 
 # print_board(board)
 
+# Reference for which numbers correspond to which clues
 clue_dict = {
     1: 'On forest or desert',
     2: 'On forest or water',
@@ -75,23 +82,25 @@ def check_one_within(spacedist, terr):
             if spacedist[i] < 2 and board[(i - 1) // 12][(i - 1) % 12].territory:
                 return True
         return False
-    else:
+    else:  # Check if one from a specific terrain
         for i in range(1, 109):
             if spacedist[i] < 2 and board[(i - 1) // 12][(i - 1) % 12].terrain == terr:
                 return True
         return False
 
+
 def check_two_within(spacedist, item, animal=False):
-    if animal:
+    if animal:  # check two from bear or cougar
         for i in range(1, 109):
             if spacedist[i] < 3 and board[(i - 1) // 12][(i - 1) % 12].territory == item:
                 return True
         return False
-    else:
+    else:  # check two from standing stone or abandoned shack
         for i in range(1, 109):
             if spacedist[i] < 3 and board[(i - 1) // 12][(i - 1) % 12].b_type == item:
                 return True
         return False
+
 
 def check_three_within(spacedist, color):
     for i in range(1, 109):
@@ -99,7 +108,9 @@ def check_three_within(spacedist, color):
             return True
     return False
 
+
 def check_space_with_clue(space, clue):
+    # get distances to all other spaces from this space
     spacedist = distances[space]
     row = (space - 1) // 12
     col = (space - 1) % 12
@@ -152,9 +163,11 @@ def check_space_with_clue(space, clue):
     elif clue == 24:
         return check_three_within(spacedist, 'black')
     elif clue > 24 and clue < 49:
+        # Inverse of the clue
         return not check_space_with_clue(space, clue - 24)
 
 
+# returns all spaces that work with a clue
 def check_all_spaces_with_clue(clue):
     sol = []
     for i in range(1, 109):
@@ -163,6 +176,7 @@ def check_all_spaces_with_clue(clue):
     return sol
 
 
+# returns the portion of clues passed to it that work with one space
 def check_all_clues_with_space(space, clues):
     sol = []
     for c in clues:

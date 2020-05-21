@@ -1,6 +1,8 @@
 #!/usr/bin/python
 """gameboard.py: Includes class declaration for a board space with proper attributes. Also has logic to load the
 gameboard based on the order of map pieces and structures."""
+__author__ = "Christopher Lehman"
+__email__ = "lehman40@purdue.edu"
 
 import pickle
 
