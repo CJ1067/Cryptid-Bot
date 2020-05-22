@@ -70,6 +70,8 @@ def flip_piece(piece):
 
 def load_board(board, debug=None, debug2=None):
     # debug options are lists that can be passed in with the piece order and structure locations to skip the user input
+    if not debug:
+        print("Enter map piece numbers in column major order followed by an f if the piece is flipped e.g 2, 4f")
     for i in range(6):
         if not debug:
             piece = input("Input piece #" + str(i + 1) + ': ')
@@ -113,6 +115,7 @@ def load_board(board, debug=None, debug2=None):
         loc = debug2[7]
         board[int(loc[0])][int(loc[1])].add_building('black', 'shack')
     else:
+        print("Enter locations as 'row col' e.g '4 5', '0, 11'")
         loc = input("Input location of green stone: ").split()
         board[int(loc[0])][int(loc[1])].add_building('green', 'stone')
 
@@ -131,11 +134,11 @@ def load_board(board, debug=None, debug2=None):
         loc = input("Input location of white shack: ").split()
         board[int(loc[0])][int(loc[1])].add_building('white', 'shack')
 
-        loc = input("Input location of black stone: ").split()
+        loc = input("Input location of black stone: (if playing normal mode, just hit enter) ").split()
         if loc:
             board[int(loc[0])][int(loc[1])].add_building('black', 'stone')
 
-        loc = input("Input location of black shack: ").split()
+        loc = input("Input location of black shack: (if playing normal mode, just hit enter) ").split()
         if loc:
             board[int(loc[0])][int(loc[1])].add_building('black', 'shack')
 
