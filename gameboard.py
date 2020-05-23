@@ -6,6 +6,7 @@ __email__ = "lehman40@purdue.edu"
 
 import pickle
 
+
 class BoardSpace:
     def __init__(self, terrain, territory=None):
         self.terrain = terrain
@@ -95,7 +96,7 @@ def load_board(board, debug=None, debug2=None):
                 board[r][c] = p[ro][co]
 
     # Load structures into the spaces
-    if debug2:
+    if debug2:  # If preset options were sent in
         loc = debug2[0]
         board[int(loc[0])][int(loc[1])].add_building('green', 'stone')
         loc = debug2[1]
@@ -114,7 +115,7 @@ def load_board(board, debug=None, debug2=None):
         board[int(loc[0])][int(loc[1])].add_building('black', 'stone')
         loc = debug2[7]
         board[int(loc[0])][int(loc[1])].add_building('black', 'shack')
-    else:
+    else:  # normal input
         print("Enter locations as 'row col' e.g '4 5', '0, 11'")
         loc = input("Input location of green stone: ").split()
         board[int(loc[0])][int(loc[1])].add_building('green', 'stone')
@@ -141,12 +142,13 @@ def load_board(board, debug=None, debug2=None):
         loc = input("Input location of black shack: (if playing normal mode, just hit enter) ").split()
         if loc:
             board[int(loc[0])][int(loc[1])].add_building('black', 'shack')
-
+        print_board(board)
 
 
 def load_obj(name):
     with open(name + '.pkl', 'rb') as f:
         return pickle.load(f)
+
 
 def print_board(board):
     for b in board:
