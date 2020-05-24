@@ -4,16 +4,13 @@ in runner.py"""
 __author__ = "Christopher Lehman"
 __email__ = "lehman40@purdue.edu"
 
-from gameboard import load_board, print_board, load_obj
+from gameboard import load_board, print_board, load_obj, get_fp
 
 # Initialize empty board
 board = [[None] * 12 for _ in range(9)]
 load_board(board)
-print_board(board)
 # load from distances.pkl as created by dcounter.py
 distances = load_obj('distances')
-
-# print_board(board)
 
 # Reference for which numbers correspond to which clues
 clue_dict = {
@@ -165,6 +162,9 @@ def check_space_with_clue(space, clue):
     elif clue > 24 and clue < 49:
         # Inverse of the clue
         return not check_space_with_clue(space, clue - 24)
+
+def get_fp2():
+    return get_fp()
 
 
 # returns all spaces that work with a clue

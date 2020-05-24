@@ -4,7 +4,7 @@ information about its and others' turns."""
 __author__ = "Christopher Lehman"
 __email__ = "lehman40@purdue.edu"
 
-from cluechecker import check_space_with_clue, get_clue_dict, check_all_spaces_with_clue, check_all_clues_with_space
+from cluechecker import check_space_with_clue, get_clue_dict, check_all_spaces_with_clue, check_all_clues_with_space, get_fp2
 import pandas as pd
 import itertools
 import random
@@ -13,22 +13,19 @@ import datetime
 
 
 def play():
-    # Prepare contents of last game to be read
-    new_file = open("lastGameRead.txt", "w")
-    with open("lastGameWrite.txt", "r") as f:
-        new_file.write(f.read())
-    new_file.close()
-
     fr = open("lastGameRead.txt", "r")
-    fw = open("lastGameWrite.txt", "w", 1)  # Prepare new file for saving the inputs of this game
+    fw = open("lastGameWrite.txt", "a", 1)  # Prepare new file for saving the inputs of this game
     lines = fr.readlines()
     lines = [l[:-1] for l in lines]
-    fp = 0
-    load = int(input("Are you loading the previous game?\n1 - Yes \n2 - No\n"))
-    if load == 2:
-        fp = len(lines)
-    debug = False
-    players = 3 if debug else int(input('How many players? '))
+
+    # Get where the fp left off in gameboard
+    fp = get_fp2()
+    if fp < len(lines):
+        players = int(lines[fp])
+        fp += 1
+    else:
+        players = int(input('How many players? '))
+    fw.write(str(players) + '\n')
     names = []
     for i in range(2, players + 1):
         if fp < len(lines):
@@ -37,10 +34,26 @@ def play():
         else:
             names.append(input("Enter player " + str(i) + "'s name: "))
         fw.write(names[-1] + '\n')
-    mode = 1 if debug else int(input('Which mode? \n1 - Normal \n2 - Advanced\n'))
+    if fp < len(lines):
+        mode = int(lines[fp])
+        fp += 1
+    else:
+        mode = int(input('Which mode? \n1 - Normal \n2 - Advanced\n'))
+    fw.write(str(mode) + '\n')
     clue_book = pd.read_csv("ClueReferenceSheet.csv")
-    book = 'Alpha' if debug else input('Which book is my clue? ').title()
-    number = 17 if debug else int(input('Which number is my clue? '))
+    if fp < len(lines):
+        book = lines[fp]
+        fp += 1
+    else:
+        book = input('Which book is my clue? ').title()
+    fw.write(book + '\n')
+    if fp < len(lines):
+        number = int(lines[fp])
+        fp += 1
+    else:
+        number = int(input('Which number is my clue? '))
+    fw.write(str(number) + '\n')
+
 
     # ideal_prop represents the proportion of clues the bot would learn about a player's clue when questioning. We want
     # this around 30% (varies with player number) so that the player is likely to place a disc. Or if they place a cube,

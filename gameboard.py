@@ -62,6 +62,14 @@ six = [[BoardSpace('desert', 'bear'), BoardSpace('desert'), BoardSpace('swamp'),
        [BoardSpace('mountain'), BoardSpace('water'), BoardSpace('water'), BoardSpace('water'), BoardSpace('water'), BoardSpace('forest')]]
 
 pieces = [one, two, three, four, five, six]
+# Prepare contents of last game to be read
+new_file = open("lastGameRead.txt", "w")
+with open("lastGameWrite.txt", "r") as f:
+    new_file.write(f.read())
+new_file.close()
+fr = open("lastGameRead.txt", "r")
+fw = open("lastGameWrite.txt", "w", 1)  # Prepare new file for saving the inputs of this game
+fp = 0
 
 
 # for a map piece that goes upside-down
@@ -69,15 +77,26 @@ def flip_piece(piece):
     return [row[::-1] for row in piece[::-1]]
 
 
-def load_board(board, debug=None, debug2=None):
+def load_board(board):
+    lines = fr.readlines()
+    lines = [l[:-1] for l in lines]
+
+    load = int(input("Are you loading the previous game?\n1 - Yes \n2 - No\n"))
+    if load == 2:
+        global fp
+        fp = len(lines)
     # debug options are lists that can be passed in with the piece order and structure locations to skip the user input
-    if not debug:
-        print("Enter map piece numbers in column major order followed by an f if the piece is flipped e.g 2, 4f")
+
+    print("Enter map piece numbers in column major order followed by an f if the piece is flipped e.g 2, 4f")
     for i in range(6):
-        if not debug:
-            piece = input("Input piece #" + str(i + 1) + ': ')
+        if fp < len(lines):
+            piece = lines[fp]
+            fp += 1
         else:
-            piece = debug[i]
+            piece = input("Input piece #" + str(i + 1) + ': ')
+        # Write the input to save
+        fw.write(piece + '\n')
+
         while len(piece) > 2 or len(piece) < 1 or not piece[0].isnumeric() or int(piece[0]) < 1 or int(piece[0]) > 6:
             piece = input("Invalid. Please enter again. ")
         num = int(piece[0])
@@ -96,53 +115,42 @@ def load_board(board, debug=None, debug2=None):
                 board[r][c] = p[ro][co]
 
     # Load structures into the spaces
-    if debug2:  # If preset options were sent in
-        loc = debug2[0]
-        board[int(loc[0])][int(loc[1])].add_building('green', 'stone')
-        loc = debug2[1]
-        board[int(loc[0])][int(loc[1])].add_building('green', 'shack')
-        loc = debug2[2]
-        board[int(loc[0])][int(loc[1])].add_building('blue', 'stone')
-        loc = debug2[3]
-        board[int(loc[0])][int(loc[1])].add_building('blue', 'shack')
-        loc = debug2[4]
-        board[int(loc[0])][int(loc[1])].add_building('white', 'stone')
-        loc = debug2[5]
-        board[int(loc[0])][int(loc[1])].add_building('white', 'shack')
-        if len(debug2) < 7:
-            return
-        loc = debug2[6]
-        board[int(loc[0])][int(loc[1])].add_building('black', 'stone')
-        loc = debug2[7]
-        board[int(loc[0])][int(loc[1])].add_building('black', 'shack')
-    else:  # normal input
-        print("Enter locations as 'row col' e.g '4 5', '0, 11'")
-        loc = input("Input location of green stone: ").split()
-        board[int(loc[0])][int(loc[1])].add_building('green', 'stone')
+    print("Enter locations as 'row col' e.g '4 5', '0 11'")
+    load_structure('green', 'stone', board, fp, lines, fw)
+    fp += 1
+    load_structure('green', 'shack', board, fp, lines, fw)
+    fp += 1
+    load_structure('blue', 'stone', board, fp, lines, fw)
+    fp += 1
+    load_structure('blue', 'shack', board, fp, lines, fw)
+    fp += 1
+    load_structure('white', 'stone', board, fp, lines, fw)
+    fp += 1
+    load_structure('white', 'shack', board, fp, lines, fw)
+    fp += 1
+    load_structure('black', 'stone', board, fp, lines, fw)
+    fp += 1
+    load_structure('black', 'shack', board, fp, lines, fw)
+    fp += 1
 
-        loc = input("Input location of green shack: ").split()
-        board[int(loc[0])][int(loc[1])].add_building('green', 'shack')
+    fw.close()
+    print_board(board)
 
-        loc = input("Input location of blue stone: ").split()
-        board[int(loc[0])][int(loc[1])].add_building('blue', 'stone')
 
-        loc = input("Input location of blue shack: ").split()
-        board[int(loc[0])][int(loc[1])].add_building('blue', 'shack')
+def get_fp():
+    return fp
 
-        loc = input("Input location of white stone: ").split()
-        board[int(loc[0])][int(loc[1])].add_building('white', 'stone')
 
-        loc = input("Input location of white shack: ").split()
-        board[int(loc[0])][int(loc[1])].add_building('white', 'shack')
-
-        loc = input("Input location of black stone: (if playing normal mode, just hit enter) ").split()
-        if loc:
-            board[int(loc[0])][int(loc[1])].add_building('black', 'stone')
-
-        loc = input("Input location of black shack: (if playing normal mode, just hit enter) ").split()
-        if loc:
-            board[int(loc[0])][int(loc[1])].add_building('black', 'shack')
-        print_board(board)
+def load_structure(color, b_type, board, fp, lines, fw):
+    if fp < len(lines):
+        loc = lines[fp].split()
+        fp += 1
+    else:
+        loc = input("Input location of " + color + " " + b_type + ": ").split()
+    # Write the input to save
+    fw.write(' '.join(loc) + '\n')
+    if loc:
+        board[int(loc[0])][int(loc[1])].add_building(color, b_type)
 
 
 def load_obj(name):
@@ -151,6 +159,7 @@ def load_obj(name):
 
 
 def print_board(board):
+    print('Game Board:')
     for b in board:
         print(b)
 
