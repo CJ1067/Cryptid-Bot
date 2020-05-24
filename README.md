@@ -28,6 +28,12 @@ The bot plays alongside human players on a set up game board by receiving input 
 - After the game, a copy of this will be stored in the 'Game Records' directory
 - At the beginning of the game, user will be given the option to load the previous game which will load the contents of lastGameWrite.txt
 
+## Loading a Previous Game
+
+- If you are loading the last run game, your contents should be in lastGameWrite.txt and you are ready to go
+- Otherwise copy the file contents of the game to load into lastGameWrite before running the program
+- Run the game and select the proper option
+
 ### Example
 
 See the sample three player game as it playes out for the setup below:

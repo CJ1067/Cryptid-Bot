@@ -97,7 +97,7 @@ def play():
         target = lines[fp]
         fp += 1
     else:
-        target = input('Who goes first? ').title()
+        target = input("Who goes first? (Type the name of the player. If it's the bot, type anything else)").title()
     # Write the input to save
     fw.write(target + '\n')
     turn = names.index(target) + 2 if target in names else 1
@@ -268,7 +268,7 @@ def play():
                     target = lines[fp]
                     fp += 1
                 else:
-                    target = input('Who was asked? ').title()
+                    target = input("Who was asked? Type the name of the player. If it's the bot, type anything else").title()
                 fw.write(target + '\n')
                 asked = names.index(target) + 2 if target in names else 1
                 if asked == 1:
