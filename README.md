@@ -48,7 +48,7 @@ The players are:
 - Charles (Red)
 
 ![Program Runthrough](https://filebin.net/5eecxc55t5q9a6wq/program_run.gif?t=7b9rbwwp)
-![Full Board Demo](https://filebin.net/5eecxc55t5q9a6wq/board_run.gif?t=kk910jq3)
+![Full Board Demo](Demos/board_run.gif)
 
 ### Video links:
 
