@@ -104,7 +104,7 @@ def play():
             turn = 1
         if turn == 1:  # Bot is player 1
             print("It's my turn!")
-            all_possible_spaces = set()
+            all_possible_spaces = {}
 
             # If the total combination of others possible clues is reasonably small. Compute all the combinations that
             # only lead to one space, otherwise, that combination is invalid
@@ -115,32 +115,35 @@ def play():
                                                       set(check_all_spaces_with_clue(my_clue)))
                     # Check if just one space works and this possible set of clues are all distinct
                     if len(working_spaces) == 1 and len(set(possible)) == len(possible):
-                        all_possible_spaces.add(working_spaces.pop())
+                        space = working_spaces.pop()
+                        if space in all_possible_spaces:
+                            all_possible_spaces[space] += 1
+                        else:
+                            all_possible_spaces[space] = 1
                         for i, p in enumerate(possible):
                             others_possibilities[i].add(p)
                 # Update the possible remaining with only the clues that led to once space
                 others_remaining = [list(o) for o in others_possibilities]
 
             # Check if there was only one possible space or a search is reasonable (see method check_to_search below)
-            if len(all_possible_spaces) == 1 or check_to_search(all_possible_spaces, my_possible, others_remaining):
+            if len(all_possible_spaces) == 1 or check_to_search(all_possible_spaces, others_remaining):
                 if len(all_possible_spaces) == 1:
-                    space = max(all_possible_spaces)
+                    space = list(all_possible_spaces.keys())[0]
                 else:
                     # determine the best space to search of the possible ones based on how much it reveals from its clue
                     # by placing a piece and the likelihood of the player to the left placing a disc (means you get
                     # extra information)
                     candidates = []
                     for space in all_possible_spaces:
-                        if (len(check_all_clues_with_space(space, my_possible)) / len(my_possible) > .55) and (
-                                len(check_all_clues_with_space(space, others_remaining[0])) / len(
-                                others_remaining[0]) > .65):
+                        if len(check_all_clues_with_space(space, others_remaining[0])) / len(others_remaining[0]) > .49:
                             candidates.append(space)
-                    if fp < len(lines):
-                        space = int(lines[fp])
-                        fp += 1
-                    else:
-                        space = random.choice(candidates)
-                    fw.write(str(space) + '\n')
+                    m = list(all_possible_spaces.values())[0]
+                    mk = list(all_possible_spaces.keys())[0]
+                    for c in candidates:
+                        if all_possible_spaces[c] > m:
+                            m = all_possible_spaces[c]
+                            mk = c
+                    space = mk
                 row = (space - 1) // 12
                 col = (space - 1) % 12
                 # Make the search
@@ -425,19 +428,16 @@ def update_cube(remaining, r, c):
 
 
 # Check if a search is warranted
-def check_to_search(all_possible, my_possible, others_remaining):
+def check_to_search(all_possible, others_remaining):
     # Not worth it if there are too many spaces that could work
     if len(all_possible) > 4:
         return False
-    # Not worth it if its clue is almost known
-    if len(my_possible) < 5:
-        return False
-    # Check if there is at least one space of the possible that doesn't reveal too much about the bot's clue (55%) and
-    # there is a good enough chance the player to the left places a disc (65%)
+    # Check if there is at least one space of the possible that there is a good enough chance the player to the left
+    # places a disc (65%)
     for space in all_possible:
         # print(len(check_all_clues_with_space(space, my_possible)) / len(my_possible))
         # print(len(check_all_clues_with_space(space, others_remaining[0])) / len(others_remaining[0]))
-        if (len(check_all_clues_with_space(space, my_possible)) / len(my_possible) > .55) and (len(check_all_clues_with_space(space, others_remaining[0])) / len(others_remaining[0]) > .65):
+        if len(check_all_clues_with_space(space, others_remaining[0])) / len(others_remaining[0]) > .49:
             return True
     return False
 
