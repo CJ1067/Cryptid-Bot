@@ -51,6 +51,10 @@ The players are:
 
 ### Video links:
 
-Below are links to the full demos:
+Below are links to the video demos:
 - Program Runthrough: https://youtu.be/A6hNMOmuhkY
 - Full Board Demo: https://youtu.be/VR4tR5pf48k
+
+### Contributing:
+
+If you have a change or improvement you'd like to see, please open an issue detailing the behavior and we can proceed from there.
