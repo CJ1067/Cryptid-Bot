@@ -47,7 +47,7 @@ The players are:
 - Amy (Purple)
 - Charles (Red)
 
-![Program Runthrough](Demos/program_run.gif)
+![Program Runthrough](https://filebin.net/5eecxc55t5q9a6wq/program_run.gif?t=7b9rbwwp)
 ![Full Board Demo](Demos/board_run.gif)
 
 ### Video links:
