@@ -8,7 +8,6 @@ from cluechecker import check_space_with_clue, get_clue_dict, check_all_spaces_w
 import pandas as pd
 import itertools
 import random
-import time
 import datetime
 
 
@@ -32,7 +31,7 @@ def play():
             names.append(lines[fp])
             fp += 1
         else:
-            names.append(input("Enter player " + str(i) + "'s name: "))
+            names.append(input("Enter player " + str(i) + "'s name: ").title())
         fw.write(names[-1] + '\n')
     if fp < len(lines):
         mode = int(lines[fp])
@@ -53,7 +52,6 @@ def play():
     else:
         number = int(input('Which number is my clue? '))
     fw.write(str(number) + '\n')
-
 
     # ideal_prop represents the proportion of clues the bot would learn about a player's clue when questioning. We want
     # this around 30% (varies with player number) so that the player is likely to place a disc. Or if they place a cube,
@@ -97,7 +95,7 @@ def play():
         target = lines[fp]
         fp += 1
     else:
-        target = input("Who goes first? (Type the name of the player. If it's the bot, type anything else)").title()
+        target = input("Who goes first? (Type the name of the player. If it's me, the bot, type anything else) ").title()
     # Write the input to save
     fw.write(target + '\n')
     turn = names.index(target) + 2 if target in names else 1
@@ -145,7 +143,6 @@ def play():
                     fw.write(str(space) + '\n')
                 row = (space - 1) // 12
                 col = (space - 1) % 12
-                time.sleep(1)
                 # Make the search
                 print("I think it's at row " + str(row) + " and column " + str(col))
                 # Loop through only players or until a cube is placed
@@ -155,7 +152,6 @@ def play():
                         found = int(lines[fp])
                         fp += 1
                     else:
-                        time.sleep(1)
                         found = int(input('Did ' + names[current - 2] + ' place a disc?\n1 - Yes \n2 - No\n'))
                     fw.write(str(found) + '\n')
 
@@ -165,7 +161,7 @@ def play():
                             print("I win.")
                             print("My clue was:", my_clue_text)
                             new_file = open(
-                                "Game-" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M").replace(':', '-') + ".txt",
+                                "Game_Records\\Game-" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M").replace(':', '-') + ".txt",
                                 "w")
                             fw.close()
                             with open("lastGameWrite.txt", "r") as f:
@@ -222,7 +218,6 @@ def play():
                     found = int(lines[fp])
                     fp += 1
                 else:
-                    time.sleep(3)
                     found = int(input(names[player_to_ask] + ", could it be at row " + str(row) + " and column " + str(col) + "?\n1 - Yes \n2 - No\n"))
                 fw.write(str(found) + '\n')
 
@@ -240,19 +235,23 @@ def play():
                         col = (space - 1) % 12
                         if (row, col) not in spots_to_avoid:
                             # track how many clues placing a cube on each space would reveal
-                            show_cube.append(len(my_possible) - len(check_all_clues_with_space(space, my_possible)))
+                            show_cube.append(len(check_all_clues_with_space(space, my_possible)))
                             spaces.append(space)
                     candidates = []
                     for i, spot in enumerate(show_cube):
                         if spot == min(show_cube):
                             candidates.append(i)
-                    space_to_place = spaces[random.choice(candidates)]
+                    if fp < len(lines):
+                        space_to_place = int(lines[fp])
+                        fp += 1
+                    else:
+                        space_to_place = spaces[random.choice(candidates)]
+                    fw.write(str(space_to_place) + '\n')
+
                     row = (space_to_place - 1) // 12
                     col = (space_to_place - 1) % 12
                     spots_to_avoid.append((row, col))
-                    time.sleep(2)
                     print("Ok. For me it can't be at row " + str(row) + " and column " + str(col) + ". Could you place a cube for me as I have no arms?")
-                    time.sleep(1)
                     my_possible = update_cube(my_possible, row, col)
 
         else:
@@ -268,7 +267,7 @@ def play():
                     target = lines[fp]
                     fp += 1
                 else:
-                    target = input("Who was asked? Type the name of the player. If it's the bot, type anything else").title()
+                    target = input("Who was asked? (Type the name of the player. If it's me, the bot, type anything else) ").title()
                 fw.write(target + '\n')
                 asked = names.index(target) + 2 if target in names else 1
                 if asked == 1:
@@ -360,7 +359,6 @@ def play():
                         current = 1
                     if current == 1:
                         print("Let me check if it could be there...")
-                        time.sleep(1)
                         print("It could be there!" if check_space_with_clue(row * 12 + col + 1,
                                                                             my_clue) else "No such luck!")
                         if check_space_with_clue(row * 12 + col + 1, my_clue):
@@ -374,7 +372,7 @@ def play():
                             print("I am defeated, well played.")
                             print("My clue was:", my_clue_text)
                             new_file = open(
-                                "Game-" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M").replace(':', '-') + ".txt",
+                                "Game_Records\\Game-" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M").replace(':', '-') + ".txt",
                                 "w")
                             with open("lastGameWrite.txt", "r") as f:
                                 new_file.write(f.read())
@@ -394,7 +392,7 @@ def play():
                                 # Everyone placed a disc
                                 print("I am defeated, well played.")
                                 print("My clue was:", my_clue_text)
-                                new_file = open("Game-" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M").replace(':', '-') + ".txt",
+                                new_file = open("Game_Records\\Game-" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M").replace(':', '-') + ".txt",
                                                 "w")
                                 with open("lastGameWrite.txt", "r") as f:
                                     new_file.write(f.read())
