@@ -5,6 +5,15 @@ __author__ = "Christopher Lehman"
 __email__ = "lehman40@purdue.edu"
 
 import pickle
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import Select
+import base64
+import time
+import cv2
+import os
+import numpy as np
+from PIL import Image
 
 
 class BoardSpace:
@@ -62,6 +71,9 @@ six = [[BoardSpace('desert', 'bear'), BoardSpace('desert'), BoardSpace('swamp'),
        [BoardSpace('mountain'), BoardSpace('water'), BoardSpace('water'), BoardSpace('water'), BoardSpace('water'), BoardSpace('forest')]]
 
 pieces = [one, two, three, four, five, six]
+
+# players = int(input('How many players? '))
+players = 3
 # Prepare contents of last game to be read
 new_file = open("lastGameRead.txt", "w")
 with open("lastGameWrite.txt", "r") as f:
@@ -70,6 +82,45 @@ new_file.close()
 fr = open("lastGameRead.txt", "r")
 fw = open("lastGameWrite.txt", "w", 1)  # Prepare new file for saving the inputs of this game
 fp = 0
+loc_to_pos = {
+    (30, 0): 0,
+    (30, 146): 1,
+    (30, 290): 2,
+    (30, 291): 2,
+    (275, 0): 3,
+    (275, 146): 4,
+    (275, 290): 5,
+    (275, 291): 5
+}
+
+row_range = {
+    (0, 46): 0,
+    (47, 90): 1,
+    (91, 136): 2,
+    (147, 193): 3,
+    (194, 237): 4,
+    (238, 283): 5,
+    (291, 337): 6,
+    (338, 383): 7,
+    (384, 429): 8
+}
+
+col_range = {
+    (30, 70): 0,
+    (71, 110): 1,
+    (111, 148): 2,
+    (149, 188): 3,
+    (189, 227): 4,
+    (228, 268): 5,
+    (275, 315): 6,
+    (316, 355): 7,
+    (356, 395): 8,
+    (396, 434): 9,
+    (435, 474): 10,
+    (475, 515): 11
+}
+
+clue_text = ''
 
 
 # for a map piece that goes upside-down
@@ -78,84 +129,170 @@ def flip_piece(piece):
 
 
 def load_board(board):
-    lines = fr.readlines()
-    lines = [l[:-1] for l in lines]
+    chrome_options = Options()
+    prefs = {"profile.default_content_setting_values.notifications": 2}
+    # chrome_options.add_argument('--headless')
+    chrome_options.add_argument("--mute-audio")
+    chrome_options.add_experimental_option("detach", True)
+    chrome_options.add_experimental_option("prefs", prefs)
 
-    load = int(input("Are you loading the previous game?\n1 - Yes \n2 - No\n"))
-    if load == 2:
-        global fp
-        fp = len(lines)
-    # debug options are lists that can be passed in with the piece order and structure locations to skip the user input
+    driver = webdriver.Chrome(options=chrome_options)
+    driver.set_window_position(0, 0)
+    driver.set_window_size(1024, 768)
 
-    print("Enter map piece numbers in column major order followed by an f if the piece is flipped e.g 2, 4f")
-    for i in range(6):
-        if fp < len(lines):
-            piece = lines[fp]
-            fp += 1
+    driver.get("https://ospreypublishing.com/playcryptid/")
+
+    time.sleep(2)
+    numplayers = Select(driver.find_element_by_id('ngfPlayers'))
+    numplayers.select_by_value(str(players))
+
+    # sound = driver.find_elements_by_class_name('slider.round')[1]
+    # sound.click()
+
+    advanced = driver.find_elements_by_class_name('slider.round')[2]
+    advanced.click()
+
+    start = driver.find_element_by_id('ngfStart')
+    start.click()
+    # numplayers = driver.find_element_by_xpath('//*[@id="ngfPlayers"]/option[@value=\'' + str(players) + '\']')
+
+    time.sleep(2)
+    canvas = driver.find_element_by_id('mapCanvas')
+
+    # get the canvas as a PNG base64 string
+    canvas_base64 = driver.execute_script("return arguments[0].toDataURL('image/png').substring(21);", canvas)
+
+    # decode
+    canvas_png = base64.b64decode(canvas_base64)
+
+    cookies_button = driver.find_element_by_class_name('cc-btn.cc-allow')
+    cookies_button.click()
+
+    clue_button = driver.find_element_by_id('clueButton')
+    clue_button.click()
+
+    global clue_text
+    clue_text = driver.find_element_by_id('clueText')
+    clue_text = clue_text.text
+
+    # save to a file
+    with open(r"canvas.png", 'wb') as f:
+        f.write(canvas_png)
+
+    iter_pieces = iter(os.listdir("Online_Board_Pieces"))
+    piece_order = [0] * 6
+
+    for filename in iter_pieces:
+        flip_filename = next(iter_pieces)
+        origLoc, origS = match_img('Online_Board_Pieces/' + filename)
+        flipLoc, flipS = match_img('Online_Board_Pieces/' + flip_filename)
+        if origLoc not in loc_to_pos:
+            # print('earlyflip')
+            piece_order[loc_to_pos[flipLoc]] = flip_filename[:flip_filename.index('.')]
+        elif flipLoc not in loc_to_pos:
+            # print('early')
+            piece_order[loc_to_pos[origLoc]] = filename[:filename.index('.')]
+        elif origS < flipS:
+            # print('late')
+            piece_order[loc_to_pos[origLoc]] = filename[:filename.index('.')]
         else:
-            piece = input("Input piece #" + str(i + 1) + ': ')
-        # Write the input to save
-        fw.write(piece + '\n')
+            # print('lateflip')
+            piece_order[loc_to_pos[flipLoc]] = flip_filename[:flip_filename.index('.')]
+    print(piece_order)
+    load_pieces(board, piece_order)
+    for filename in os.listdir("Online_Board_IMGs"):
+        loc, _ = match_img('Online_Board_IMGs/' + filename)
+        cloc, rloc = loc
+        for crange in col_range:
+            low, high = crange
+            if low <= cloc <= high:
+                col = col_range[crange]
+                break
+        if col % 2 == 1:
+            rloc -= 25
+        for rrange in row_range:
+            low, high = rrange
+            if low <= rloc <= high:
+                row = row_range[rrange]
+                break
 
-        while len(piece) > 2 or len(piece) < 1 or not piece[0].isnumeric() or int(piece[0]) < 1 or int(piece[0]) > 6:
-            piece = input("Invalid. Please enter again. ")
-        num = int(piece[0])
-        if len(piece) == 2 and piece[1] == 'f':
-            p = flip_piece(pieces[num - 1])
-        else:
-            p = pieces[num - 1]
+        color, b_type = filename[:filename.index('.')].split('_')
 
-        startcol = 0
-        if i > 2:
-            startcol = 6
+        load_structure(color, b_type, board, row, col)
 
-        # Place spaces into the corresponding spaces in the board
-        for ro, r in enumerate(range((i % 3) * 3, (i % 3) * 3 + 3)):
-            for co, c in enumerate(range(startcol, startcol + 6)):
-                board[r][c] = p[ro][co]
 
-    # Load structures into the spaces
-    print("Enter locations as 'row col' e.g '4 5', '0 11'")
-    load_structure('green', 'stone', board, fp, lines, fw)
-    fp += 1
-    load_structure('green', 'shack', board, fp, lines, fw)
-    fp += 1
-    load_structure('blue', 'stone', board, fp, lines, fw)
-    fp += 1
-    load_structure('blue', 'shack', board, fp, lines, fw)
-    fp += 1
-    load_structure('white', 'stone', board, fp, lines, fw)
-    fp += 1
-    load_structure('white', 'shack', board, fp, lines, fw)
-    fp += 1
-    load_structure('black', 'stone', board, fp, lines, fw)
-    fp += 1
-    load_structure('black', 'shack', board, fp, lines, fw)
-    fp += 1
-
-    fw.close()
     print_board(board)
+
+
+def match_img(filename):
+    online_board = cv2.imread('canvas.png')
+    small_image = cv2.imread(filename)
+
+    result = cv2.matchTemplate(online_board, small_image, cv2.TM_SQDIFF, mask=small_image)
+
+    # We want the minimum squared difference
+    mn, _, mnLoc, _ = cv2.minMaxLoc(result)
+
+    # print(filename)
+    # print(mnLoc)
+    # print(mn / 1000000)
+
+    # Draw the rectangle:
+    # Extract the coordinates of our best match
+    MPx, MPy = mnLoc
+
+    # # Step 2: Get the size of the template. This is the same size as the match.
+    # trows, tcols = small_image.shape[:2]
+    #
+    # # Step 3: Draw the rectangle on large_image
+    # cv2.rectangle(online_board, (MPx, MPy), (MPx + tcols, MPy + trows), (0, 0, 255), 2)
+    #
+    # # Display the original image with the rectangle around the match.
+    # cv2.imshow('output', online_board)
+    #
+    # cv2.waitKey(0)
+
+    return mnLoc, mn
 
 
 def get_fp():
     return fp
 
 
-def load_structure(color, b_type, board, fp, lines, fw):
-    if fp < len(lines):
-        loc = lines[fp].split()
-        fp += 1
-    else:
-        loc = input("Input location of " + color + " " + b_type + ": ").split()
-    # Write the input to save
-    fw.write(' '.join(loc) + '\n')
-    if loc:
-        board[int(loc[0])][int(loc[1])].add_building(color, b_type)
+def load_pieces(board, pieces_order):
+    for i in range(6):
+        startcol = 0
+        if i > 2:
+            startcol = 6
+
+        piece = pieces_order[i]
+        num = int(piece[0])
+        if len(piece) == 2 and piece[1] == 'f':
+            p = flip_piece(pieces[num - 1])
+        else:
+            p = pieces[num - 1]
+
+        # Place spaces into the corresponding spaces in the board
+        for ro, r in enumerate(range((i % 3) * 3, (i % 3) * 3 + 3)):
+            for co, c in enumerate(range(startcol, startcol + 6)):
+                board[r][c] = p[ro][co]
+
+
+def load_structure(color, b_type, board, row, col):
+    board[row][col].add_building(color, b_type)
 
 
 def load_obj(name):
     with open(name + '.pkl', 'rb') as f:
         return pickle.load(f)
+
+
+def get_players():
+    return players
+
+
+def get_bot_clue():
+    return clue_text
 
 
 def print_board(board):
