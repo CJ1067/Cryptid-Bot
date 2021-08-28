@@ -4,7 +4,7 @@ in runner.py"""
 __author__ = "Christopher Lehman"
 __email__ = "lehman40@purdue.edu"
 
-from gameboard import load_board, print_board, load_obj, get_fp, get_players, get_bot_clue
+from gameboard import load_board, print_board, load_obj, get_fp, get_players, get_clues, get_start_time
 
 # Initialize empty board
 board = [[None] * 12 for _ in range(9)]
@@ -15,15 +15,15 @@ distances = load_obj('distances')
 # Reference for which numbers correspond to which clues
 clue_dict = {
     'The habitat is on forest or desert': 1,
-    'The habitat is on forest or water': 2,
+    'The habitat is on water or forest': 2,
     'The habitat is on forest or swamp': 3,
     'The habitat is on forest or mountain': 4,
-    'The habitat is on desert or water': 5,
+    'The habitat is on water or desert': 5,
     'The habitat is on desert or swamp': 6,
     'The habitat is on desert or mountain': 7,
     'The habitat is on water or swamp': 8,
     'The habitat is on water or mountain': 9,
-    'The habitat is on swamp or mountain': 10,
+    'The habitat is on mountain or swamp': 10,
     'The habitat is within one space of forest': 11,
     'The habitat is within one space of desert': 12,
     'The habitat is within one space of swamp': 13,
@@ -39,10 +39,10 @@ clue_dict = {
     'The habitat is within three spaces of a green structure': 23,
     'The habitat is within three spaces of a black structure': 24,
     'The habitat is not on forest or desert': 25,
-    'The habitat is not on forest or water': 26,
+    'The habitat is not on water or forest': 26,
     'The habitat is not on forest or swamp': 27,
     'The habitat is not on forest or mountain': 28,
-    'The habitat is not on desert or water': 29,
+    'The habitat is not on water or desert': 29,
     'The habitat is not on desert or swamp': 30,
     'The habitat is not on desert or mountain': 31,
     'The habitat is not on water or swamp': 32,
@@ -51,7 +51,7 @@ clue_dict = {
     'The habitat is not within one space of forest': 35,
     'The habitat is not within one space of desert': 36,
     'The habitat is not within one space of swamp': 37,
-    'The habitat is not within one space of mountain': 38,
+    'The habitat not is within one space of mountain': 38,
     'The habitat is not within one space of water': 39,
     'The habitat is not within one space of either animal territory': 40,
     'The habitat is not within two spaces of a standing stone': 41,

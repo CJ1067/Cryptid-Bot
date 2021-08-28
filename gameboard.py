@@ -12,8 +12,8 @@ import base64
 import time
 import cv2
 import os
-import numpy as np
-from PIL import Image
+from openpyxl import load_workbook
+import traceback
 
 
 class BoardSpace:
@@ -40,6 +40,7 @@ class BoardSpace:
             return self.terrain
 
 
+start_time = time.time()
 # Map piece 1
 one = [[BoardSpace('water'), BoardSpace('water'), BoardSpace('water'), BoardSpace('water'), BoardSpace('forest'), BoardSpace('forest')],
        [BoardSpace('swamp'), BoardSpace('swamp'), BoardSpace('water'), BoardSpace('desert'), BoardSpace('forest'), BoardSpace('forest')],
@@ -73,7 +74,7 @@ six = [[BoardSpace('desert', 'bear'), BoardSpace('desert'), BoardSpace('swamp'),
 pieces = [one, two, three, four, five, six]
 
 # players = int(input('How many players? '))
-players = 3
+players = 4
 # Prepare contents of last game to be read
 new_file = open("lastGameRead.txt", "w")
 with open("lastGameWrite.txt", "r") as f:
@@ -120,7 +121,7 @@ col_range = {
     (475, 515): 11
 }
 
-clue_text = ''
+clues_text = []
 
 
 # for a map piece that goes upside-down
@@ -129,99 +130,121 @@ def flip_piece(piece):
 
 
 def load_board(board):
-    chrome_options = Options()
-    prefs = {"profile.default_content_setting_values.notifications": 2}
-    # chrome_options.add_argument('--headless')
-    chrome_options.add_argument("--mute-audio")
-    chrome_options.add_experimental_option("detach", True)
-    chrome_options.add_experimental_option("prefs", prefs)
+    try:
+        chrome_options = Options()
+        prefs = {"profile.default_content_setting_values.notifications": 2}
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument("--mute-audio")
+        chrome_options.add_experimental_option("detach", True)
+        chrome_options.add_experimental_option("prefs", prefs)
 
-    driver = webdriver.Chrome(options=chrome_options)
-    driver.set_window_position(0, 0)
-    driver.set_window_size(1024, 768)
+        driver = webdriver.Chrome(options=chrome_options)
+        # driver.maximize_window()
+        driver.set_window_position(0, 0)
+        driver.set_window_size(1024, 768)
 
-    driver.get("https://ospreypublishing.com/playcryptid/")
+        driver.get("https://ospreypublishing.com/playcryptid/")
 
-    time.sleep(2)
-    numplayers = Select(driver.find_element_by_id('ngfPlayers'))
-    numplayers.select_by_value(str(players))
+        time.sleep(2)
+        numplayers = Select(driver.find_element_by_id('ngfPlayers'))
+        numplayers.select_by_value(str(players))
 
-    # sound = driver.find_elements_by_class_name('slider.round')[1]
-    # sound.click()
+        # sound = driver.find_elements_by_class_name('slider.round')[1]
+        # sound.click()
 
-    advanced = driver.find_elements_by_class_name('slider.round')[2]
-    advanced.click()
+        advanced = driver.find_elements_by_class_name('slider.round')[2]
+        advanced.click()
 
-    start = driver.find_element_by_id('ngfStart')
-    start.click()
-    # numplayers = driver.find_element_by_xpath('//*[@id="ngfPlayers"]/option[@value=\'' + str(players) + '\']')
+        start = driver.find_element_by_id('ngfStart')
+        start.click()
+        # numplayers = driver.find_element_by_xpath('//*[@id="ngfPlayers"]/option[@value=\'' + str(players) + '\']')
 
-    time.sleep(2)
-    canvas = driver.find_element_by_id('mapCanvas')
+        time.sleep(2)
+        canvas = driver.find_element_by_id('mapCanvas')
 
-    # get the canvas as a PNG base64 string
-    canvas_base64 = driver.execute_script("return arguments[0].toDataURL('image/png').substring(21);", canvas)
+        # get the canvas as a PNG base64 string
+        canvas_base64 = driver.execute_script("return arguments[0].toDataURL('image/png').substring(21);", canvas)
 
-    # decode
-    canvas_png = base64.b64decode(canvas_base64)
+        # decode
+        canvas_png = base64.b64decode(canvas_base64)
 
-    cookies_button = driver.find_element_by_class_name('cc-btn.cc-allow')
-    cookies_button.click()
+        cookies_button = driver.find_element_by_class_name('cc-btn.cc-allow')
+        cookies_button.click()
 
-    clue_button = driver.find_element_by_id('clueButton')
-    clue_button.click()
+        time.sleep(1)
 
-    global clue_text
-    clue_text = driver.find_element_by_id('clueText')
-    clue_text = clue_text.text
+        clue_button = driver.find_element_by_id('clueButton')
+        clue_button.click()
+        time.sleep(1)
+        clue_text = driver.find_element_by_id('clueText')
+        clues_text.append(clue_text.text)
+        for i in range(players - 1):
+            clue_button.click()
+            time.sleep(.5)
+            clue_button.click()
+            time.sleep(.5)
+            clues_text.append(clue_text.text)
 
-    # save to a file
-    with open(r"canvas.png", 'wb') as f:
-        f.write(canvas_png)
+        # save to a file
+        with open(r"canvas.png", 'wb') as f:
+            f.write(canvas_png)
 
-    iter_pieces = iter(os.listdir("Online_Board_Pieces"))
-    piece_order = [0] * 6
+        iter_pieces = iter(os.listdir("Online_Board_Pieces"))
+        piece_order = [0] * 6
 
-    for filename in iter_pieces:
-        flip_filename = next(iter_pieces)
-        origLoc, origS = match_img('Online_Board_Pieces/' + filename)
-        flipLoc, flipS = match_img('Online_Board_Pieces/' + flip_filename)
-        if origLoc not in loc_to_pos:
-            # print('earlyflip')
-            piece_order[loc_to_pos[flipLoc]] = flip_filename[:flip_filename.index('.')]
-        elif flipLoc not in loc_to_pos:
-            # print('early')
-            piece_order[loc_to_pos[origLoc]] = filename[:filename.index('.')]
-        elif origS < flipS:
-            # print('late')
-            piece_order[loc_to_pos[origLoc]] = filename[:filename.index('.')]
+        for filename in iter_pieces:
+            flip_filename = next(iter_pieces)
+            origLoc, origS = match_img('Online_Board_Pieces/' + filename)
+            flipLoc, flipS = match_img('Online_Board_Pieces/' + flip_filename)
+            if origLoc not in loc_to_pos:
+                # print('earlyflip')
+                piece_order[loc_to_pos[flipLoc]] = flip_filename[:flip_filename.index('.')]
+            elif flipLoc not in loc_to_pos:
+                # print('early')
+                piece_order[loc_to_pos[origLoc]] = filename[:filename.index('.')]
+            elif origS < flipS:
+                # print('late')
+                piece_order[loc_to_pos[origLoc]] = filename[:filename.index('.')]
+            else:
+                # print('lateflip')
+                piece_order[loc_to_pos[flipLoc]] = flip_filename[:flip_filename.index('.')]
+        print(piece_order)
+        load_pieces(board, piece_order)
+        for filename in os.listdir("Online_Board_IMGs"):
+            loc, _ = match_img('Online_Board_IMGs/' + filename)
+            cloc, rloc = loc
+            for crange in col_range:
+                low, high = crange
+                if low <= cloc <= high:
+                    col = col_range[crange]
+                    break
+            if col % 2 == 1:
+                rloc -= 25
+            for rrange in row_range:
+                low, high = rrange
+                if low <= rloc <= high:
+                    row = row_range[rrange]
+                    break
+
+            color, b_type = filename[:filename.index('.')].split('_')
+
+            load_structure(color, b_type, board, row, col)
+
+        driver.close()
+    except:
+        traceback.print_exc()
+        workbook = load_workbook(filename="Cryptid_Logs.xlsx")
+        sheet = workbook.active
+        for cell in sheet["A"]:
+            if cell.value is None:
+                next_row = cell.row
+                break
         else:
-            # print('lateflip')
-            piece_order[loc_to_pos[flipLoc]] = flip_filename[:flip_filename.index('.')]
-    print(piece_order)
-    load_pieces(board, piece_order)
-    for filename in os.listdir("Online_Board_IMGs"):
-        loc, _ = match_img('Online_Board_IMGs/' + filename)
-        cloc, rloc = loc
-        for crange in col_range:
-            low, high = crange
-            if low <= cloc <= high:
-                col = col_range[crange]
-                break
-        if col % 2 == 1:
-            rloc -= 25
-        for rrange in row_range:
-            low, high = rrange
-            if low <= rloc <= high:
-                row = row_range[rrange]
-                break
-
-        color, b_type = filename[:filename.index('.')].split('_')
-
-        load_structure(color, b_type, board, row, col)
-
-
-    print_board(board)
+            next_row = cell.row + 1
+        sheet['A' + str(next_row)] = 'false'
+        sheet['B' + str(next_row)] = players
+        workbook.save(filename="Cryptid_Logs.xlsx")
+    # print_board(board)
 
 
 def match_img(filename):
@@ -291,9 +314,12 @@ def get_players():
     return players
 
 
-def get_bot_clue():
-    return clue_text
+def get_clues():
+    return clues_text
 
+
+def get_start_time():
+    return start_time
 
 def print_board(board):
     print('Game Board:')

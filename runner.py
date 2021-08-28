@@ -4,11 +4,14 @@ information about its and others' turns."""
 __author__ = "Christopher Lehman"
 __email__ = "lehman40@purdue.edu"
 
-from cluechecker import check_space_with_clue, get_clue_dict, check_all_spaces_with_clue, check_all_clues_with_space, get_fp2, get_players, get_bot_clue
+from cluechecker import check_space_with_clue, get_clue_dict, check_all_spaces_with_clue, check_all_clues_with_space, get_start_time, get_players, get_clues
 import pandas as pd
 import itertools
 import random
 import datetime
+from openpyxl import load_workbook
+import time
+import traceback
 
 def play():
     players = get_players()
@@ -29,36 +32,51 @@ def play():
     else:
         ideal_prop = .35
 
-    my_clue_text = get_bot_clue()
-    print(my_clue_text)
-    my_clue = get_clue_dict()[my_clue_text]
-    print(my_clue)
-    spots_to_avoid = []
+    try:
+        my_clue_text = get_clues()[0]
+        print(my_clue_text)
+        my_clue = get_clue_dict()[my_clue_text]
+        spots_to_avoid = []
 
-    # which clues other players think it could have
-    my_possible = list(range(1, 49) if mode == 2 else list(range(1, 24)))
-    # which spaces have pieces on them, should avoid for asking
-    non_satisfied_spaces = list(set(range(1, 109)) - set(check_all_spaces_with_clue(my_clue)))
+        orig_clue_dict = dict((v, k) for k, v in get_clue_dict().items())
 
-    # which clues other players could have
-    others_remaining = [list(range(1, 49) if mode == 2 else list(range(1, 24))) for _ in range(players - 1)]
+        # which clues other players think it could have
+        my_possible = list(range(1, 49) if mode == 2 else list(range(1, 24)))
+        # which spaces have pieces on them, should avoid for asking
+        non_satisfied_spaces = list(set(range(1, 109)) - set(check_all_spaces_with_clue(my_clue)))
+        inital_spaces_out = len(non_satisfied_spaces)
 
-    # If its clue is a two terrain one, can eliminate some clues from others's possibilities
-    if my_clue < 11:
-        terrains = (my_clue_text.split()[4], my_clue_text.split()[6])
-        for i in range(1, 11):
-            if terrains[0] not in get_clue_dict()[i] and terrains[1] not in get_clue_dict()[i]:
-                for o in others_remaining:
-                    o.remove(i)
-    # If its clue is a 'not', the inverse is not possible for the others
-    if my_clue > 24:
+        # which clues other players could have
+        others_remaining = [list(range(1, 49) if mode == 2 else list(range(1, 24))) for _ in range(players - 1)]
+
+        # If its clue is a two terrain one, can eliminate some clues from others's possibilities
+        if my_clue < 11:
+            terrains = (my_clue_text.split()[4], my_clue_text.split()[6])
+            for i in range(1, 11):
+                if terrains[0] not in orig_clue_dict[i] and terrains[1] not in orig_clue_dict[i]:
+                    for o in others_remaining:
+                        o.remove(i)
+        # If its clue is a 'not', the inverse is not possible for the others
+        if my_clue > 24:
+            for o in others_remaining:
+                o.remove(my_clue - 24)
+        # The others cannot have its clue
         for o in others_remaining:
-            o.remove(my_clue - 24)
-    # The others cannot have its clue
-    for o in others_remaining:
-        o.remove(my_clue)
+            o.remove(my_clue)
 
-    turn = 1
+        turn = 1
+    except:
+        traceback.print_exc()
+        workbook = load_workbook(filename="Cryptid_Logs.xlsx")
+        sheet = workbook.active
+        for cell in sheet["A"]:
+            if cell.value is None:
+                next_row = cell.row
+                break
+        else:
+            next_row = cell.row + 1
+        sheet['A' + str(next_row)] = 'false'
+        sheet['B' + str(next_row)] = players
     while True:
         if turn > players:
             turn = 1
@@ -69,7 +87,7 @@ def play():
             # If the total combination of others possible clues is reasonably small. Compute all the combinations that
             # only lead to one space, otherwise, that combination is invalid
             print(total_comb(others_remaining))
-            if total_comb(others_remaining) < 2500:
+            if total_comb(others_remaining) < 130000:
                 others_possibilities = [set() for _ in range(players - 1)]
                 for possible in itertools.product(*others_remaining):
                     working_spaces = set.intersection(*[set(check_all_spaces_with_clue(p)) for p in possible],
@@ -85,6 +103,17 @@ def play():
                             others_possibilities[i].add(p)
                 # Update the possible remaining with only the clues that led to once space
                 others_remaining = [list(o) for o in others_possibilities]
+                print(others_remaining)
+                print(all_possible_spaces)
+
+            workbook = load_workbook(filename="Cryptid_Logs.xlsx")
+            sheet = workbook.active
+            for cell in sheet["A"]:
+                if cell.value is None:
+                    next_row = cell.row
+                    break
+            else:
+                next_row = cell.row + 1
 
             # Check if there was only one possible space or a search is reasonable (see method check_to_search below)
             if len(all_possible_spaces) == 1 or check_to_search(all_possible_spaces, others_remaining):
@@ -108,22 +137,29 @@ def play():
                 row = (space - 1) // 12
                 col = (space - 1) % 12
                 # Make the search
-                print("I think it's at row " + str(row) + " and column " + str(col))
+                print("I think it's space " + str(space) + " at row " + str(row) + " and column " + str(col))
                 # Loop through only players or until a cube is placed
-                for i in range(2, players + 1):
-                    current = i
-                    found = int(input('Did ' + names[current - 2] + ' place a disc?\n1 - Yes \n2 - No\n'))
+                result_space = max(set.intersection(*[set(check_all_spaces_with_clue(c)) for c in [get_clue_dict()[clue] for clue in get_clues()]]))
 
-                    if found == 1:
-                        others_remaining[current - 2] = update_disc(others_remaining[current - 2], row, col)
-                        if current == players:
-                            print("I win.")
-                            print("My clue was:", my_clue_text)
-                            return
-                    else:
-                        others_remaining[current - 2] = update_cube(others_remaining[current - 2], row, col)
-                        break
+                sheet['A' + str(next_row)] = 'true'
+                sheet['B' + str(next_row)] = players
+                sheet['C' + str(next_row)] = my_clue_text
+                sheet['D' + str(next_row)] = inital_spaces_out
+                sheet['E' + str(next_row)] = len(all_possible_spaces)
+                sheet['F' + str(next_row)] = 'true'
+                sheet['G' + str(next_row)] = 'true' if result_space == space else 'false'
+                sheet['H' + str(next_row)] = str(round(time.time() - get_start_time(), 2))
+                workbook.save(filename="Cryptid_Logs.xlsx")
+                return
             else:
+                sheet['A' + str(next_row)] = 'true'
+                sheet['B' + str(next_row)] = players
+                sheet['C' + str(next_row)] = my_clue_text
+                sheet['D' + str(next_row)] = len(all_possible_spaces)
+                sheet['E' + str(next_row)] = 'false'
+                sheet['G' + str(next_row)] = str(round(time.time() - get_start_time(), 2))
+                workbook.save(filename="Cryptid_Logs.xlsx")
+                return
                 # Not enough info to search, so will question a player
                 lengths = [len(o) for o in others_remaining]
                 # Asks player with most possible remaining clues (decides randomly in a tie)
