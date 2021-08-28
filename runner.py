@@ -5,7 +5,6 @@ __author__ = "Christopher Lehman"
 __email__ = "lehman40@purdue.edu"
 
 from cluechecker import check_space_with_clue, get_clue_dict, check_all_spaces_with_clue, check_all_clues_with_space, get_start_time, get_players, get_clues
-import pandas as pd
 import itertools
 import random
 import datetime
@@ -90,8 +89,7 @@ def play():
             if total_comb(others_remaining) < 130000:
                 others_possibilities = [set() for _ in range(players - 1)]
                 for possible in itertools.product(*others_remaining):
-                    working_spaces = set.intersection(*[set(check_all_spaces_with_clue(p)) for p in possible],
-                                                      set(check_all_spaces_with_clue(my_clue)))
+                    working_spaces = set.intersection(set(check_all_spaces_with_clue(my_clue)), *[set(check_all_spaces_with_clue(p)) for p in possible])
                     # Check if just one space works and this possible set of clues are all distinct
                     if len(working_spaces) == 1 and len(set(possible)) == len(possible):
                         space = working_spaces.pop()
