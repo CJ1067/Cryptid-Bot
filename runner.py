@@ -88,10 +88,12 @@ def play():
             print(total_comb(others_remaining))
             if total_comb(others_remaining) < 130000:
                 others_possibilities = [set() for _ in range(players - 1)]
+                possibles_cumul = []
                 for possible in itertools.product(*others_remaining):
                     working_spaces = set.intersection(set(check_all_spaces_with_clue(my_clue)), *[set(check_all_spaces_with_clue(p)) for p in possible])
                     # Check if just one space works and this possible set of clues are all distinct
-                    if len(working_spaces) == 1 and len(set(possible)) == len(possible):
+                    if len(working_spaces) == 1 and len(set(possible)) == len(possible) and set(possible) not in possibles_cumul:
+                        possibles_cumul.append(set(possible))
                         space = working_spaces.pop()
                         if space in all_possible_spaces:
                             all_possible_spaces[space] += 1
@@ -104,6 +106,7 @@ def play():
                 print(others_remaining)
                 print(all_possible_spaces)
 
+            all_possible_spaces_ordered = {k: v for k, v in sorted(all_possible_spaces.items(), key=lambda item: item[1], reverse=True)}
             workbook = load_workbook(filename="Cryptid_Logs.xlsx")
             sheet = workbook.active
             for cell in sheet["A"]:
@@ -141,21 +144,45 @@ def play():
 
                 sheet['A' + str(next_row)] = 'true'
                 sheet['B' + str(next_row)] = players
-                sheet['C' + str(next_row)] = my_clue_text
-                sheet['D' + str(next_row)] = inital_spaces_out
-                sheet['E' + str(next_row)] = len(all_possible_spaces)
-                sheet['F' + str(next_row)] = 'true'
-                sheet['G' + str(next_row)] = 'true' if result_space == space else 'false'
-                sheet['H' + str(next_row)] = str(round(time.time() - get_start_time(), 2))
+                sheet['C' + str(next_row)] = str(round(time.time() - get_start_time(), 2))
+                sheet['D' + str(next_row)] = my_clue_text
+                sheet['E' + str(next_row)] = inital_spaces_out
+                sheet['F' + str(next_row)] = len(all_possible_spaces)
+                sheet['G' + str(next_row)] = 'true'
+                sheet['H' + str(next_row)] = 'true' if result_space == space else 'false'
+                sheet['I' + str(next_row)] = result_space
+                col_ind = 10
+                for space_num, freq in all_possible_spaces_ordered.items():
+                    sheet[colnum_string(col_ind) + str(next_row)] = space_num
+                    col_ind += 1
+                    sheet[colnum_string(col_ind) + str(next_row)] = freq
+                    col_ind += 1
+                    if col_ind > 29:
+                        break
+
                 workbook.save(filename="Cryptid_Logs.xlsx")
                 return
             else:
+                result_space = max(set.intersection(
+                    *[set(check_all_spaces_with_clue(c)) for c in [get_clue_dict()[clue] for clue in get_clues()]]))
+
                 sheet['A' + str(next_row)] = 'true'
                 sheet['B' + str(next_row)] = players
-                sheet['C' + str(next_row)] = my_clue_text
-                sheet['D' + str(next_row)] = len(all_possible_spaces)
-                sheet['E' + str(next_row)] = 'false'
-                sheet['G' + str(next_row)] = str(round(time.time() - get_start_time(), 2))
+                sheet['C' + str(next_row)] = str(round(time.time() - get_start_time(), 2))
+                sheet['D' + str(next_row)] = my_clue_text
+                sheet['E' + str(next_row)] = inital_spaces_out
+                sheet['F' + str(next_row)] = len(all_possible_spaces)
+                sheet['G' + str(next_row)] = 'false'
+                sheet['I' + str(next_row)] = result_space
+                col_ind = 10
+                for space_num, freq in all_possible_spaces_ordered.items():
+                    sheet[colnum_string(col_ind) + str(next_row)] = space_num
+                    col_ind += 1
+                    sheet[colnum_string(col_ind) + str(next_row)] = freq
+                    col_ind += 1
+                    if col_ind > 29:
+                        break
+
                 workbook.save(filename="Cryptid_Logs.xlsx")
                 return
                 # Not enough info to search, so will question a player
@@ -329,6 +356,15 @@ def play():
                             others_remaining[current - 2] = update_cube(others_remaining[current - 2], row, col)
                             break
         turn += 1
+
+
+# Convert column number to excel letter
+def colnum_string(n):
+    string = ""
+    while n > 0:
+        n, remainder = divmod(n - 1, 26)
+        string = chr(65 + remainder) + string
+    return string
 
 
 # Calculate the total possible combinations of others' remaining clues
