@@ -74,6 +74,7 @@ six = [[BoardSpace('desert', 'bear'), BoardSpace('desert'), BoardSpace('swamp'),
 pieces = [one, two, three, four, five, six]
 
 # players = int(input('How many players? '))
+# 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
 players = 3
 # Prepare contents of last game to be read
 new_file = open("lastGameRead.txt", "w")
@@ -193,6 +194,7 @@ def load_board(board):
         piece_order = [0] * 6
 
         for filename in iter_pieces:
+            print(filename, flip_filename)
             flip_filename = next(iter_pieces)
             origLoc, origS = match_img('Online_Board_Pieces/' + filename)
             flipLoc, flipS = match_img('Online_Board_Pieces/' + flip_filename)
