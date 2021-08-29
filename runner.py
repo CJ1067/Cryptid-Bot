@@ -4,7 +4,7 @@ information about its and others' turns."""
 __author__ = "Christopher Lehman"
 __email__ = "lehman40@purdue.edu"
 
-from cluechecker import check_space_with_clue, get_clue_dict, check_all_spaces_with_clue, check_all_clues_with_space, get_start_time, get_players, get_clues
+from cluechecker import check_space_with_clue, get_clue_dict, check_all_spaces_with_clue, check_all_clues_with_space, get_start_time, get_players, get_clues, get_board_config
 import itertools
 import random
 import datetime
@@ -106,7 +106,7 @@ def play():
                 print(others_remaining)
                 print(all_possible_spaces)
 
-            all_possible_spaces_ordered = {k: v for k, v in sorted(all_possible_spaces.items(), key=lambda item: item[1], reverse=True)}
+            all_possible_spaces_ordered = sorted(all_possible_spaces.items(), key=lambda kv: kv[1], reverse=True)
             workbook = load_workbook(filename="Cryptid_Logs.xlsx")
             sheet = workbook.active
             for cell in sheet["A"]:
@@ -143,21 +143,24 @@ def play():
                 result_space = max(set.intersection(*[set(check_all_spaces_with_clue(c)) for c in [get_clue_dict()[clue] for clue in get_clues()]]))
 
                 sheet['A' + str(next_row)] = 'true'
-                sheet['B' + str(next_row)] = players
-                sheet['C' + str(next_row)] = str(round(time.time() - get_start_time(), 2))
-                sheet['D' + str(next_row)] = my_clue_text
-                sheet['E' + str(next_row)] = inital_spaces_out
-                sheet['F' + str(next_row)] = len(all_possible_spaces)
-                sheet['G' + str(next_row)] = 'true'
-                sheet['H' + str(next_row)] = 'true' if result_space == space else 'false'
-                sheet['I' + str(next_row)] = result_space
-                col_ind = 10
-                for space_num, freq in all_possible_spaces_ordered.items():
+                sheet['B' + str(next_row)] = get_board_config()
+                sheet['C' + str(next_row)] = players
+                sheet['D' + str(next_row)] = str(round(time.time() - get_start_time(), 2))
+                sheet['E' + str(next_row)] = my_clue_text
+                sheet['F' + str(next_row)] = inital_spaces_out
+                sheet['G' + str(next_row)] = len(all_possible_spaces)
+                sheet['H' + str(next_row)] = 'true'
+                sheet['I' + str(next_row)] = 'true' if result_space == space else 'false'
+                sheet['J' + str(next_row)] = result_space
+                col_ind = 11
+                print(all_possible_spaces_ordered)
+                for space_num, freq in all_possible_spaces_ordered:
+                    print(space_num, freq)
                     sheet[colnum_string(col_ind) + str(next_row)] = space_num
                     col_ind += 1
                     sheet[colnum_string(col_ind) + str(next_row)] = freq
                     col_ind += 1
-                    if col_ind > 29:
+                    if col_ind > 40:
                         break
 
                 workbook.save(filename="Cryptid_Logs.xlsx")
@@ -167,20 +170,21 @@ def play():
                     *[set(check_all_spaces_with_clue(c)) for c in [get_clue_dict()[clue] for clue in get_clues()]]))
 
                 sheet['A' + str(next_row)] = 'true'
-                sheet['B' + str(next_row)] = players
-                sheet['C' + str(next_row)] = str(round(time.time() - get_start_time(), 2))
-                sheet['D' + str(next_row)] = my_clue_text
-                sheet['E' + str(next_row)] = inital_spaces_out
-                sheet['F' + str(next_row)] = len(all_possible_spaces)
-                sheet['G' + str(next_row)] = 'false'
-                sheet['I' + str(next_row)] = result_space
-                col_ind = 10
-                for space_num, freq in all_possible_spaces_ordered.items():
+                sheet['B' + str(next_row)] = get_board_config()
+                sheet['C' + str(next_row)] = players
+                sheet['D' + str(next_row)] = str(round(time.time() - get_start_time(), 2))
+                sheet['E' + str(next_row)] = my_clue_text
+                sheet['F' + str(next_row)] = inital_spaces_out
+                sheet['G' + str(next_row)] = len(all_possible_spaces)
+                sheet['H' + str(next_row)] = 'false'
+                sheet['J' + str(next_row)] = result_space
+                col_ind = 11
+                for space_num, freq in all_possible_spaces_ordered:
                     sheet[colnum_string(col_ind) + str(next_row)] = space_num
                     col_ind += 1
                     sheet[colnum_string(col_ind) + str(next_row)] = freq
                     col_ind += 1
-                    if col_ind > 29:
+                    if col_ind > 40:
                         break
 
                 workbook.save(filename="Cryptid_Logs.xlsx")

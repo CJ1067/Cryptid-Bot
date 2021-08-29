@@ -74,7 +74,7 @@ six = [[BoardSpace('desert', 'bear'), BoardSpace('desert'), BoardSpace('swamp'),
 pieces = [one, two, three, four, five, six]
 
 # players = int(input('How many players? '))
-# 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
+board_config = ''
 players = 3
 # Prepare contents of last game to be read
 new_file = open("lastGameRead.txt", "w")
@@ -193,6 +193,8 @@ def load_board(board):
         iter_pieces = iter(sorted(os.listdir("Online_Board_Pieces")))
         piece_order = [0] * 6
 
+        global board_config
+
         for filename in iter_pieces:
             flip_filename = next(iter_pieces)
             origLoc, origS = match_img('Online_Board_Pieces/' + filename)
@@ -200,15 +202,20 @@ def load_board(board):
             if origLoc not in loc_to_pos:
                 # print('earlyflip')
                 piece_order[loc_to_pos[flipLoc]] = flip_filename[:flip_filename.index('.')]
+                board_config += flip_filename[:flip_filename.index('.')] + ','
             elif flipLoc not in loc_to_pos:
                 # print('early')
                 piece_order[loc_to_pos[origLoc]] = filename[:filename.index('.')]
+                board_config += filename[:filename.index('.')] + ','
             elif origS < flipS:
                 # print('late')
                 piece_order[loc_to_pos[origLoc]] = filename[:filename.index('.')]
+                board_config += filename[:filename.index('.')] + ','
             else:
                 # print('lateflip')
                 piece_order[loc_to_pos[flipLoc]] = flip_filename[:flip_filename.index('.')]
+                board_config += flip_filename[:flip_filename.index('.')] + ','
+        board_config += '|'
         print(piece_order)
         load_pieces(board, piece_order)
         for filename in os.listdir("Online_Board_IMGs"):
@@ -228,9 +235,9 @@ def load_board(board):
                     break
 
             color, b_type = filename[:filename.index('.')].split('_')
-
+            board_config += str(row) + ',' + str(col) + ';'
             load_structure(color, b_type, board, row, col)
-
+        board_config = board_config[:-1]
         driver.close()
     except:
         traceback.print_exc()
@@ -272,9 +279,9 @@ def match_img(filename):
     # cv2.rectangle(online_board, (MPx, MPy), (MPx + tcols, MPy + trows), (0, 0, 255), 2)
     #
     # # Display the original image with the rectangle around the match.
-    # # cv2.imshow('output', online_board)
-    # #
-    # # cv2.waitKey(0)
+    # cv2.imshow('output', online_board)
+    #
+    # cv2.waitKey(0)
     # cv2.imwrite(filename[:-4] + '_s.png', online_board)
 
     return mnLoc, mn
@@ -322,6 +329,11 @@ def get_clues():
 
 def get_start_time():
     return start_time
+
+
+def get_board_config():
+    return board_config
+
 
 def print_board(board):
     print('Game Board:')

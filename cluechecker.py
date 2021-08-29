@@ -4,7 +4,7 @@ in runner.py"""
 __author__ = "Christopher Lehman"
 __email__ = "lehman40@purdue.edu"
 
-from gameboard import load_board, print_board, load_obj, get_fp, get_players, get_clues, get_start_time
+from gameboard import load_board, print_board, load_obj, get_fp, get_players, get_clues, get_start_time, get_board_config
 
 # Initialize empty board
 board = [[None] * 12 for _ in range(9)]
