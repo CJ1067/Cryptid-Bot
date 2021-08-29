@@ -190,7 +190,7 @@ def load_board(board):
         with open(r"canvas.png", 'wb') as f:
             f.write(canvas_png)
 
-        iter_pieces = iter(os.listdir("Online_Board_Pieces"))
+        iter_pieces = iter(sorted(os.listdir("Online_Board_Pieces")))
         piece_order = [0] * 6
 
         for filename in iter_pieces:
