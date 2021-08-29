@@ -1,4 +1,4 @@
 import os
 
 while True:
-    os.system('python runner.py')
+    os.system('python3 runner.py')
