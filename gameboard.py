@@ -271,9 +271,10 @@ def match_img(filename):
     cv2.rectangle(online_board, (MPx, MPy), (MPx + tcols, MPy + trows), (0, 0, 255), 2)
 
     # Display the original image with the rectangle around the match.
-    cv2.imshow('output', online_board)
-
-    cv2.waitKey(0)
+    # cv2.imshow('output', online_board)
+    #
+    # cv2.waitKey(0)
+    cv2.imwrite('s_' + filename, online_board)
 
     return mnLoc, mn
 
