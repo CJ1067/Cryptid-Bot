@@ -74,7 +74,7 @@ six = [[BoardSpace('desert', 'bear'), BoardSpace('desert'), BoardSpace('swamp'),
 pieces = [one, two, three, four, five, six]
 
 # players = int(input('How many players? '))
-players = 4
+players = 3
 # Prepare contents of last game to be read
 new_file = open("lastGameRead.txt", "w")
 with open("lastGameWrite.txt", "r") as f:
@@ -274,7 +274,7 @@ def match_img(filename):
     # cv2.imshow('output', online_board)
     #
     # cv2.waitKey(0)
-    cv2.imwrite('s_' + filename, online_board)
+    cv2.imwrite(filename[:-4] + '_s.png', online_board)
 
     return mnLoc, mn
 
