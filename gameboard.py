@@ -194,8 +194,8 @@ def load_board(board):
         piece_order = [0] * 6
 
         for filename in iter_pieces:
-            print(filename, flip_filename)
             flip_filename = next(iter_pieces)
+            print(filename, flip_filename)
             origLoc, origS = match_img('Online_Board_Pieces/' + filename)
             flipLoc, flipS = match_img('Online_Board_Pieces/' + flip_filename)
             if origLoc not in loc_to_pos:
