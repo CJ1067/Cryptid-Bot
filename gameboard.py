@@ -265,17 +265,17 @@ def match_img(filename):
     # Extract the coordinates of our best match
     MPx, MPy = mnLoc
 
-    # Step 2: Get the size of the template. This is the same size as the match.
-    trows, tcols = small_image.shape[:2]
-
-    # Step 3: Draw the rectangle on large_image
-    cv2.rectangle(online_board, (MPx, MPy), (MPx + tcols, MPy + trows), (0, 0, 255), 2)
-
-    # Display the original image with the rectangle around the match.
-    # cv2.imshow('output', online_board)
+    # # Step 2: Get the size of the template. This is the same size as the match.
+    # trows, tcols = small_image.shape[:2]
     #
-    # cv2.waitKey(0)
-    cv2.imwrite(filename[:-4] + '_s.png', online_board)
+    # # Step 3: Draw the rectangle on large_image
+    # cv2.rectangle(online_board, (MPx, MPy), (MPx + tcols, MPy + trows), (0, 0, 255), 2)
+    #
+    # # Display the original image with the rectangle around the match.
+    # # cv2.imshow('output', online_board)
+    # #
+    # # cv2.waitKey(0)
+    # cv2.imwrite(filename[:-4] + '_s.png', online_board)
 
     return mnLoc, mn
 
