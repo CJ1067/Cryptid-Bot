@@ -53,7 +53,7 @@ clue_dict = {
     'The habitat is not within one space of swamp': 37,
     'The habitat not is within one space of mountain': 38,
     'The habitat is not within one space of water': 39,
-    'The habitat is not within one space of either animal territory': 40,
+    'The habitat is not within one space of an animal\'s territory': 40,
     'The habitat is not within two spaces of a standing stone': 41,
     'The habitat is not within two spaces of a shack': 42,
     'The habitat is not within two spaces of a cougar territory': 43,

@@ -193,7 +193,7 @@ def load_board(board):
         iter_pieces = iter(sorted(os.listdir("Online_Board_Pieces")))
         piece_order = [0] * 6
 
-        global board_config
+
 
         for filename in iter_pieces:
             flip_filename = next(iter_pieces)
@@ -202,21 +202,21 @@ def load_board(board):
             if origLoc not in loc_to_pos:
                 # print('earlyflip')
                 piece_order[loc_to_pos[flipLoc]] = flip_filename[:flip_filename.index('.')]
-                board_config += flip_filename[:flip_filename.index('.')] + ','
             elif flipLoc not in loc_to_pos:
                 # print('early')
                 piece_order[loc_to_pos[origLoc]] = filename[:filename.index('.')]
-                board_config += filename[:filename.index('.')] + ','
             elif origS < flipS:
                 # print('late')
                 piece_order[loc_to_pos[origLoc]] = filename[:filename.index('.')]
-                board_config += filename[:filename.index('.')] + ','
             else:
                 # print('lateflip')
                 piece_order[loc_to_pos[flipLoc]] = flip_filename[:flip_filename.index('.')]
-                board_config += flip_filename[:flip_filename.index('.')] + ','
-        board_config += '|'
         print(piece_order)
+        global board_config
+        for po in piece_order:
+            board_config += po + ','
+        board_config = board_config[:-1]
+        board_config += '|'
         load_pieces(board, piece_order)
         for filename in os.listdir("Online_Board_IMGs"):
             loc, _ = match_img('Online_Board_IMGs/' + filename)
