@@ -92,13 +92,14 @@ def play():
                 for possible in itertools.product(*others_remaining):
                     working_spaces = set.intersection(set(check_all_spaces_with_clue(my_clue)), *[set(check_all_spaces_with_clue(p)) for p in possible])
                     # Check if just one space works and this possible set of clues are all distinct
-                    if len(working_spaces) == 1 and len(set(possible)) == len(possible) and set(possible) not in possibles_cumul:
+                    if len(working_spaces) == 1 and len(set(possible)) == len(possible):
                         possibles_cumul.append(set(possible))
                         space = working_spaces.pop()
-                        if space in all_possible_spaces:
-                            all_possible_spaces[space] += 1
-                        else:
-                            all_possible_spaces[space] = 1
+                        if set(possible) not in possibles_cumul:
+                            if space in all_possible_spaces:
+                                all_possible_spaces[space] += 1
+                            else:
+                                all_possible_spaces[space] = 1
                         for i, p in enumerate(possible):
                             others_possibilities[i].add(p)
                 # Update the possible remaining with only the clues that led to once space
@@ -401,6 +402,14 @@ def check_to_search(all_possible, others_remaining):
         # print(len(check_all_clues_with_space(space, others_remaining[0])) / len(others_remaining[0]))
         if len(check_all_clues_with_space(space, others_remaining[0])) / len(others_remaining[0]) > .49:
             return True
+    print('CASE FOUND')
+    print(get_clues())
+    print(all_possible)
+    print(others_remaining)
+    for space in all_possible:
+        print(space)
+        print(check_all_clues_with_space(space, others_remaining[0]))
+
     return False
 
 
