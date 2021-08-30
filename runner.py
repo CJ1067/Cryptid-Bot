@@ -93,9 +93,9 @@ def play():
                     working_spaces = set.intersection(set(check_all_spaces_with_clue(my_clue)), *[set(check_all_spaces_with_clue(p)) for p in possible])
                     # Check if just one space works and this possible set of clues are all distinct
                     if len(working_spaces) == 1 and len(set(possible)) == len(possible):
-                        possibles_cumul.append(set(possible))
                         space = working_spaces.pop()
                         if set(possible) not in possibles_cumul:
+                            possibles_cumul.append(set(possible))
                             if space in all_possible_spaces:
                                 all_possible_spaces[space] += 1
                             else:
