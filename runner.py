@@ -8,7 +8,7 @@ from cluechecker import check_space_with_clue, get_clue_dict, check_all_spaces_w
 import itertools
 import random
 import datetime
-from openpyxl import load_workbook
+import csv
 import time
 import traceback
 
@@ -66,16 +66,11 @@ def play():
         turn = 1
     except:
         traceback.print_exc()
-        workbook = load_workbook(filename="Cryptid_Logs.xlsx")
-        sheet = workbook.active
-        for cell in sheet["A"]:
-            if cell.value is None:
-                next_row = cell.row
-                break
-        else:
-            next_row = cell.row + 1
-        sheet['A' + str(next_row)] = 'false'
-        sheet['B' + str(next_row)] = players
+        with open('Cryptid_Logs.csv', 'a') as f:
+            row = ['false', get_board_config(), players]
+
+            writer = csv.writer(f, lineterminator='\n')
+            writer.writerow(row)
     while True:
         if turn > players:
             turn = 1
@@ -108,14 +103,6 @@ def play():
                 print(all_possible_spaces)
 
             all_possible_spaces_ordered = sorted(all_possible_spaces.items(), key=lambda kv: kv[1], reverse=True)
-            workbook = load_workbook(filename="Cryptid_Logs.xlsx")
-            sheet = workbook.active
-            for cell in sheet["A"]:
-                if cell.value is None:
-                    next_row = cell.row
-                    break
-            else:
-                next_row = cell.row + 1
 
             # Check if there was only one possible space or a search is reasonable (see method check_to_search below)
             if len(all_possible_spaces) == 1 or check_to_search(all_possible_spaces, others_remaining):
@@ -143,52 +130,56 @@ def play():
                 # Loop through only players or until a cube is placed
                 result_space = max(set.intersection(*[set(check_all_spaces_with_clue(c)) for c in [get_clue_dict()[clue] for clue in get_clues()]]))
 
-                sheet['A' + str(next_row)] = 'true'
-                sheet['B' + str(next_row)] = get_board_config()
-                sheet['C' + str(next_row)] = players
-                sheet['D' + str(next_row)] = str(round(time.time() - get_start_time(), 2))
-                sheet['E' + str(next_row)] = my_clue_text
-                sheet['F' + str(next_row)] = inital_spaces_out
-                sheet['G' + str(next_row)] = len(all_possible_spaces)
-                sheet['H' + str(next_row)] = 'true'
-                sheet['I' + str(next_row)] = 'true' if result_space == space else 'false'
-                sheet['J' + str(next_row)] = result_space
-                col_ind = 11
-                print(all_possible_spaces_ordered)
-                for space_num, freq in all_possible_spaces_ordered:
-                    print(space_num, freq)
-                    sheet[colnum_string(col_ind) + str(next_row)] = space_num
-                    col_ind += 1
-                    sheet[colnum_string(col_ind) + str(next_row)] = freq
-                    col_ind += 1
-                    if col_ind > 40:
-                        break
+                with open('Cryptid_Logs.csv', 'a') as f:
+                    row = []
+                    row.append('true')
+                    row.append(get_board_config())
+                    row.append(players)
+                    row.append(str(round(time.time() - get_start_time(), 2)))
+                    row.append(my_clue_text)
+                    row.append(inital_spaces_out)
+                    row.append(len(all_possible_spaces))
+                    row.append('true')
+                    row.append('true' if result_space == space else 'false')
+                    row.append(result_space)
+                    print(all_possible_spaces_ordered)
+                    for i, values in enumerate(all_possible_spaces_ordered):
+                        space_num, freq = values
+                        print(i, space_num, freq)
+                        if i > 14:
+                            break
+                        row.append(space_num)
+                        row.append(freq)
+                    writer = csv.writer(f, lineterminator='\n')
+                    writer.writerow(row)
 
-                workbook.save(filename="Cryptid_Logs.xlsx")
                 return
             else:
                 result_space = max(set.intersection(
                     *[set(check_all_spaces_with_clue(c)) for c in [get_clue_dict()[clue] for clue in get_clues()]]))
 
-                sheet['A' + str(next_row)] = 'true'
-                sheet['B' + str(next_row)] = get_board_config()
-                sheet['C' + str(next_row)] = players
-                sheet['D' + str(next_row)] = str(round(time.time() - get_start_time(), 2))
-                sheet['E' + str(next_row)] = my_clue_text
-                sheet['F' + str(next_row)] = inital_spaces_out
-                sheet['G' + str(next_row)] = len(all_possible_spaces)
-                sheet['H' + str(next_row)] = 'false'
-                sheet['J' + str(next_row)] = result_space
-                col_ind = 11
-                for space_num, freq in all_possible_spaces_ordered:
-                    sheet[colnum_string(col_ind) + str(next_row)] = space_num
-                    col_ind += 1
-                    sheet[colnum_string(col_ind) + str(next_row)] = freq
-                    col_ind += 1
-                    if col_ind > 40:
-                        break
-
-                workbook.save(filename="Cryptid_Logs.xlsx")
+                with open('Cryptid_Logs.csv', 'a') as f:
+                    row = []
+                    row.append('true')
+                    row.append(get_board_config())
+                    row.append(players)
+                    row.append(str(round(time.time() - get_start_time(), 2)))
+                    row.append(my_clue_text)
+                    row.append(inital_spaces_out)
+                    row.append(len(all_possible_spaces))
+                    row.append('false')
+                    row.append('')
+                    row.append(result_space)
+                    print(all_possible_spaces_ordered)
+                    for i, values in enumerate(all_possible_spaces_ordered):
+                        space_num, freq = values
+                        print(i, space_num, freq)
+                        if i > 14:
+                            break
+                        row.append(space_num)
+                        row.append(freq)
+                    writer = csv.writer(f, lineterminator='\n')
+                    writer.writerow(row)
                 return
                 # Not enough info to search, so will question a player
                 lengths = [len(o) for o in others_remaining]

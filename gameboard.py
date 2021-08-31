@@ -12,7 +12,7 @@ import base64
 import time
 import cv2
 import os
-from openpyxl import load_workbook
+import csv
 import traceback
 
 
@@ -193,8 +193,6 @@ def load_board(board):
         iter_pieces = iter(sorted(os.listdir("Online_Board_Pieces")))
         piece_order = [0] * 6
 
-
-
         for filename in iter_pieces:
             flip_filename = next(iter_pieces)
             origLoc, origS = match_img('Online_Board_Pieces/' + filename)
@@ -241,17 +239,11 @@ def load_board(board):
         driver.close()
     except:
         traceback.print_exc()
-        workbook = load_workbook(filename="Cryptid_Logs.xlsx")
-        sheet = workbook.active
-        for cell in sheet["A"]:
-            if cell.value is None:
-                next_row = cell.row
-                break
-        else:
-            next_row = cell.row + 1
-        sheet['A' + str(next_row)] = 'false'
-        sheet['B' + str(next_row)] = players
-        workbook.save(filename="Cryptid_Logs.xlsx")
+        with open('Cryptid_Logs.csv', 'a', newline='') as f:
+            row = ['false', '', players]
+
+            writer = csv.writer(f, lineterminator='\n')
+            writer.writerow(row)
     # print_board(board)
 
 
