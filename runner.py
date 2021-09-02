@@ -76,7 +76,7 @@ def play():
             # Loop through only players or until a cube is placed
             result_space = max(set.intersection(
                 *[set(check_all_spaces_with_clue(c)) for c in [get_clue_dict()[clue] for clue in get_clues()]]))
-            print(get_clue_dict())
+            print(get_clues())
             print('CORRECT SPACE:', result_space)
 
             with open('Cryptid_Logs.csv', 'a') as f:
@@ -104,7 +104,7 @@ def play():
 
             return
         else:
-            print(get_clue_dict())
+            print(get_clues())
 
             result_space = max(set.intersection(
                 *[set(check_all_spaces_with_clue(c)) for c in [get_clue_dict()[clue] for clue in get_clues()]]))
@@ -235,7 +235,8 @@ def play():
                     print("I think it's space " + str(space) + " at row " + str(row) + " and column " + str(col))
                     # Loop through only players or until a cube is placed
                     result_space = max(set.intersection(*[set(check_all_spaces_with_clue(c)) for c in [get_clue_dict()[clue] for clue in get_clues()]]))
-
+                    print(get_clues())
+                    print('CORRECT SPACE:', result_space)
                     with open('Cryptid_Logs.csv', 'a') as f:
                         row = []
                         row.append('true')
@@ -263,7 +264,8 @@ def play():
                 else:
                     result_space = max(set.intersection(
                         *[set(check_all_spaces_with_clue(c)) for c in [get_clue_dict()[clue] for clue in get_clues()]]))
-
+                    print(get_clues())
+                    print('CORRECT SPACE:', result_space)
                     with open('Cryptid_Logs.csv', 'a') as f:
                         row = []
                         row.append('true')
