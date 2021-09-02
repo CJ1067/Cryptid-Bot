@@ -44,8 +44,6 @@ def play():
             all_possibilities = [set() for _ in range(players)]
             possibles_cumul = []
             for possible in itertools.product(*all_remaining):
-                if all(p < 25 for p in possible):
-                    continue
                 working_spaces = set.intersection(*[set(check_all_spaces_with_clue(p)) for p in possible])
                 # Check if just one space works and this possible set of clues are all distinct
                 if len(working_spaces) == 1 and len(set(possible)) == len(possible):
@@ -188,8 +186,6 @@ def play():
                     others_possibilities = [set() for _ in range(players - 1)]
                     possibles_cumul = []
                     for possible in itertools.product(*others_remaining):
-                        if my_clue < 25 and all(p < 25 for p in possible):
-                            continue
                         working_spaces = set.intersection(set(check_all_spaces_with_clue(my_clue)), *[set(check_all_spaces_with_clue(p)) for p in possible])
                         # Check if just one space works and this possible set of clues are all distinct
                         if len(working_spaces) == 1 and len(set(possible)) == len(possible):
